@@ -8,7 +8,7 @@
     "build:server": "webpack --config webpack.server.config.js",
     "dev": "npm run build:server && nodemon src/index.ts",
     "gen-swag": "tspec generate --outputPath openapi.json --openapiTitle 'Atiyeh Holdings' --specPathGlobs src/models/**/*.ts",
-    "build": "npm run gen-swag && node dist/index.js"
+    "build": "node dist/index.js"
   },
   "keywords": [],
   "author": "",
