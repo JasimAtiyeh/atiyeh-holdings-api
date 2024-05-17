@@ -7,7 +7,6 @@ import { UserRole, UserTypes } from "../models/users";
 let userCollection: Collection<UserTypes>;
 
 export async function ConnectUserCollection() {
-  console.log(process.env.USER_COLLECTION);
   userCollection = await GetCollection<UserTypes>(
     process.env.USER_COLLECTION as string
   );

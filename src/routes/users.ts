@@ -55,7 +55,6 @@ UserRoutes.route("/:userId")
   })
   .put(async (req, res) => {
     try {
-      console.log(req.body.updateData);
       const userUpdated = await UpdateUser(
         req.params.userId,
         req.body.updateData
