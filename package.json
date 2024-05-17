@@ -5,7 +5,7 @@
   "main": "index.js",
   "module": "es2022",
   "scripts": {
-    "build": "webpack --config webpack.server.config.js",
+    "build": "webpack --config webpack.server.config.js && npm run gen-swag",
     "dev": "npm run build && nodemon src/index.ts",
     "gen-swag": "tspec generate --outputPath openapi.json --openapiTitle 'Atiyeh Holdings' --specPathGlobs src/models/**/*.ts",
     "start": "node dist/index.js"
