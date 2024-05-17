@@ -23,6 +23,8 @@ async function initServer() {
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+
+  return 0;
 }
 
 initServer();
