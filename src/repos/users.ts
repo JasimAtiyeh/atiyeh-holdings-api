@@ -49,7 +49,7 @@ async function CreateUser(
     email,
     password: hashedPassword,
     role,
-  });
+  } as UserTypes);
   return userCreated;
 }
 
