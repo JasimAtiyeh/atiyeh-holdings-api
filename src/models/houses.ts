@@ -1,7 +1,6 @@
 import { ObjectId, OptionalId, Document as Doc } from "mongodb";
-import User from "./users";
 
-type HouseDetails = {
+export type HouseDetails = {
   bathrooms: number;
   bedrooms: number;
   currentValue: number;
@@ -9,20 +8,19 @@ type HouseDetails = {
   sqft: number;
 };
 
-type Lease = {
+export type Lease = {
   deposit: number;
   end: Date;
   rentPrice: number;
   start: Date;
-  tenant: any;
+  tenantId: ObjectId;
 };
 
 export default class House implements Doc {
   constructor(
     public address: string,
     public name: string,
-    // TODO - Extend from the user class for tenant type
-    public users: Array<User>,
+    public ownerIds: Array<ObjectId>,
     public details?: HouseDetails,
     public id?: OptionalId<ObjectId>,
     public lease?: Lease

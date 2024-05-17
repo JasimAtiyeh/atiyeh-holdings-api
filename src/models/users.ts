@@ -1,16 +1,32 @@
 import { ObjectId, OptionalId, Document as Doc } from "mongodb";
-import House from "./houses";
+import House, { Lease } from "./houses";
 import { Tspec } from "tspec";
 
-export default class User implements Doc {
-  constructor(
-    public name: string,
-    public email: string,
-    public password?: string,
-    public _id?: OptionalId<ObjectId>,
-    public houses?: Array<House>
-  ) {}
-}
+export type UserRole = "admin" | "owner" | "tenant";
+export type UserTypes = Admin | Owner | Tentant;
+
+export type User = {
+  name: string;
+  email: string;
+  role: UserRole;
+  _id?: OptionalId<ObjectId>;
+  password?: string;
+};
+
+export type Tentant = {
+  role: "tenant";
+  house: House;
+  lease: Lease;
+} & User;
+
+export type Owner = {
+  role: "owner";
+  houses?: Array<House>;
+} & User;
+
+export type Admin = {
+  role: "admin";
+} & User;
 
 export type UserApiSpec = Tspec.DefineApiSpec<{
   basePath: "/users";

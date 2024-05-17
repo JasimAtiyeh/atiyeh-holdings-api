@@ -36,7 +36,7 @@ async function UsersSchema() {
     validator: {
       $jsonSchema: {
         bsonType: "object",
-        required: ["name", "email", "password"],
+        required: ["name", "email", "password", "role"],
         additionalProperties: false,
         properties: {
           _id: {},
@@ -55,6 +55,11 @@ async function UsersSchema() {
           houses: {
             bsonType: "array",
             description: "array of houses associated with the user",
+          },
+          role: {
+            bsonType: "string",
+            description:
+              "'role' is required and is either 'admin', 'owner', or 'tentant",
           },
         },
       },
@@ -80,9 +85,9 @@ async function HousesSchema() {
             bsonType: "string",
             description: "'address' is required and is a string",
           },
-          users: {
+          ownerIds: {
             bsonType: "array",
-            description: "array of users associated with the house",
+            description: "array of user ids associated with the house",
           },
           details: {
             bsonType: "object",
@@ -111,19 +116,16 @@ async function HousesSchema() {
                 bsonType: "number",
               },
               end: {
-                // Can this be date
-                bsonType: "number",
+                bsonType: "date",
               },
               rentPrice: {
                 bsonType: "number",
               },
               start: {
-                // Can this be date
-                bsonType: "number",
+                bsonType: "date",
               },
-              tenant: {
-                // Custom type user
-                bsonType: "number",
+              tenantId: {
+                bsonType: "string",
               },
             },
           },

@@ -14,19 +14,12 @@ UserRoutes.use(express.json());
 UserRoutes.get("/", async (_req, res) => {
   const users = await GetUsers();
   if (!users) return res.status(404).json({ message: "No users found" });
-  const returnUsers = users.map((user) => {
-    return {
-      userId: user._id,
-      email: user.email,
-      name: user.name,
-      houses: user.houses,
-    };
-  });
+  const returnUsers = users.map((user) => delete user.password);
   return res.status(200).json({ users: returnUsers });
 });
 
 UserRoutes.post("/", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
   if (!email || !password || !name) {
     return res
@@ -40,7 +33,7 @@ UserRoutes.post("/", async (req, res) => {
       return res.status(400).json({ error: "Username already exists" });
     }
 
-    const user = await CreateUser(name, email, password);
+    const user = await CreateUser(name, email, password, role);
     if (!user.acknowledged)
       return res.status(500).json({ message: "Error creating user" });
     return res.status(201).json({ userId: user.insertedId.toString() });
@@ -54,12 +47,8 @@ UserRoutes.route("/:userId")
     try {
       const user = await GetUserById(req.params.userId);
       if (!user) return res.status(404).json({ message: "User not found" });
-      return res.status(200).json({
-        userId: user._id,
-        name: user.name,
-        email: user.email,
-        houses: user.houses,
-      });
+      delete user.password;
+      return res.status(200).json({ user });
     } catch (error) {
       return res.status(500).json({ message: "Couldn't get user", error });
     }
