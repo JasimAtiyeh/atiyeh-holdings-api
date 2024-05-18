@@ -1,6 +1,6 @@
 ## TODO:
 
-- Test all users routes
+- Test all users routes - Done
 - Test all houses routes
 - Test all leases routes
 - Test all tickets routes
