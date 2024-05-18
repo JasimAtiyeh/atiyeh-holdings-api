@@ -1,8 +1,7 @@
 import { Collection, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
 import { GetCollection } from ".";
 import "dotenv/config";
-import House, { HouseDetails, Lease } from "../models/houses";
-import { UserTypes } from "../models/users";
+import { House, HouseDetails } from "../models/houses";
 
 let houseCollection: Collection<House>;
 
@@ -12,7 +11,7 @@ export async function ConnectHouseCollection() {
   );
 }
 
-// Get House By Id
+// Get house by id
 async function GetHouseById(houseId: string): Promise<House | null> {
   const house = await houseCollection.findOne<House>({
     _id: new ObjectId(houseId),
@@ -21,52 +20,52 @@ async function GetHouseById(houseId: string): Promise<House | null> {
   return house;
 }
 
-// Get Houses For Owner
-async function GetHousesForOwner(userId: string): Promise<House[] | null> {
+// Get houses for owner
+async function GetHousesForOwner(ownerId: string): Promise<House[] | null> {
   const houses = await houseCollection
     .find<House>({
-      users: { _id: userId },
+      ownerIds: { _id: new ObjectId(ownerId) },
     })
     .toArray();
   if (!houses) return null;
   return houses;
 }
 
-// Get House For Tenant
-async function GetHouseForTenant(userId: string): Promise<House | null> {
+// Get house for tenant
+async function GetHouseForTenant(tenantId: string): Promise<House | null> {
   const house = await houseCollection.findOne<House>({
-    lease: { tenantId: userId },
+    leaseId: { tenantId },
   });
   if (!house) return null;
   return house;
 }
 
-// Get Houses
+// Get houses
 async function GetHouses(): Promise<House[] | null> {
   const houses = await houseCollection.find<House>({}).toArray();
   if (!houses.length) return null;
   return houses;
 }
 
-// Create House
+// Create house
 async function CreateHouse(
   address: string,
   name: string,
   ownerIds: Array<ObjectId>,
   details?: HouseDetails,
-  lease?: Lease
+  leaseId?: ObjectId
 ): Promise<InsertOneResult<House>> {
   const houseCreated = await houseCollection.insertOne({
     address,
     name,
     ownerIds,
     details,
-    lease,
+    leaseId,
   });
   return houseCreated;
 }
 
-// Update House
+// Update house
 async function UpdateHouse(
   houseId: string,
   updateData: Partial<House>
@@ -80,7 +79,7 @@ async function UpdateHouse(
   return true;
 }
 
-// Delete House
+// Delete house
 async function DeleteHouse(houseId: string): Promise<boolean> {
   const houseDeleted = await houseCollection.deleteOne({
     _id: new ObjectId(houseId),

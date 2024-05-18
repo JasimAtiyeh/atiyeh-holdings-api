@@ -1,4 +1,4 @@
-import { ObjectId, OptionalId, Document as Doc } from "mongodb";
+import { ObjectId, OptionalId } from "mongodb";
 
 export type HouseDetails = {
   bathrooms: number;
@@ -8,21 +8,38 @@ export type HouseDetails = {
   sqft: number;
 };
 
-export type Lease = {
-  deposit: number;
-  end: Date;
-  rentPrice: number;
-  start: Date;
-  tenantId: ObjectId;
+export type House = {
+  address: string;
+  name: string;
+  ownerIds: Array<ObjectId>;
+  details?: HouseDetails;
+  _id?: OptionalId<ObjectId>;
+  leaseId?: ObjectId;
+  tenantId?: ObjectId;
+  maintenanceTicketIds?: Array<ObjectId>;
 };
 
-export default class House implements Doc {
-  constructor(
-    public address: string,
-    public name: string,
-    public ownerIds: Array<ObjectId>,
-    public details?: HouseDetails,
-    public id?: OptionalId<ObjectId>,
-    public lease?: Lease
-  ) {}
-}
+export const housesSchemaValidator = {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["name", "address", "ownerIds"],
+    additionalProperties: false,
+    properties: {
+      _id: { bsonType: "objectId" },
+      name: { bsonType: "string" },
+      address: { bsonType: "string" },
+      ownerIds: { bsonType: "array" },
+      leaseId: { bsonType: "objectId" },
+      details: {
+        bsonType: "object",
+        properties: {
+          bathrooms: { bsonType: "number" },
+          bedrooms: { bsonType: "number" },
+          currentValue: { bsonType: "number" },
+          purchasePrice: { bsonType: "number" },
+          sqft: { bsonType: "number" },
+        },
+      },
+    },
+  },
+};
