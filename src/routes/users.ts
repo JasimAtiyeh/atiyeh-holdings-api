@@ -16,7 +16,10 @@ UserRoutes.route("/")
     try {
       const users = await GetUsers();
       if (!users) return res.status(404).json({ message: "No users found" });
-      const returnUsers = users.map((user) => delete user.password);
+      const returnUsers = users.map((user) => {
+        delete user.password;
+        return user;
+      });
       return res.status(200).json({ users: returnUsers });
     } catch (error) {
       return res
