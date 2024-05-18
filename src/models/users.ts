@@ -1,5 +1,4 @@
-import { ObjectId, OptionalId, Document as Doc } from "mongodb";
-import House, { Lease } from "./houses";
+import { ObjectId } from "mongodb";
 import { Tspec } from "tspec";
 
 export type UserRole = "admin" | "owner" | "tenant";
@@ -9,19 +8,19 @@ export type User = {
   name: string;
   email: string;
   role: UserRole;
-  _id?: OptionalId<ObjectId>;
+  _id?: ObjectId;
   password?: string;
 };
 
 export type Tentant = {
   role: "tenant";
-  house: House;
-  lease: Lease;
+  houseId: ObjectId;
+  leaseId: ObjectId;
 } & User;
 
 export type Owner = {
   role: "owner";
-  houses?: Array<House>;
+  houseIds?: Array<ObjectId>;
 } & User;
 
 export type Admin = {
@@ -43,3 +42,19 @@ export type UserApiSpec = Tspec.DefineApiSpec<{
     };
   };
 }>;
+
+export const usersSchemaValidator = {
+  $jsonSchema: {
+    bsonType: "object",
+    required: ["name", "email", "password", "role"],
+    additionalProperties: false,
+    properties: {
+      _id: { bsonType: "objectId" },
+      name: { bsonType: "string" },
+      email: { bsonType: "string" },
+      password: { bsonType: "string" },
+      houses: { bsonType: "array" },
+      role: { bsonType: "string" },
+    },
+  },
+};

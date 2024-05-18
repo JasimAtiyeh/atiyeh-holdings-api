@@ -12,7 +12,7 @@ export async function ConnectUserCollection() {
   );
 }
 
-// Get User
+// Get user by id
 async function GetUserById(userId: string): Promise<UserTypes | null> {
   const user = await userCollection.findOne<UserTypes>({
     _id: new ObjectId(userId),
@@ -21,21 +21,21 @@ async function GetUserById(userId: string): Promise<UserTypes | null> {
   return user;
 }
 
-// Get User
+// Get user by email
 async function GetUserByEmail(email: string): Promise<UserTypes | null> {
   const user = await userCollection.findOne<UserTypes>({ email });
   if (!user) return null;
   return user;
 }
 
-// GetUsers
+// Get users
 async function GetUsers(): Promise<UserTypes[] | null> {
   const users = await userCollection.find<UserTypes>({}).toArray();
   if (!users.length) return null;
   return users;
 }
 
-// Create User
+// Create user
 async function CreateUser(
   name: string,
   email: string,
@@ -53,7 +53,7 @@ async function CreateUser(
   return userCreated;
 }
 
-// UpdateUser
+// Update user
 async function UpdateUser(
   userId: string,
   updateData: Partial<UserTypes>
@@ -67,7 +67,7 @@ async function UpdateUser(
   return true;
 }
 
-// DeleteUser
+// Delete user
 async function DeleteUser(userId: string): Promise<boolean> {
   const userDeleted = await userCollection.deleteOne({
     _id: new ObjectId(userId),
