@@ -1,30 +1,28 @@
 import express from "express";
 import AuthRoutes from "./routes/auth";
-import { STATUS_CODES } from "http";
 import { ConnectDB } from "./repos";
 import "dotenv/config";
-import { ConnectUserCollection } from "./repos/users";
 import UserRoutes from "./routes/users";
 import { TspecDocsMiddleware } from "tspec";
+import HouseRoutes from "./routes/houses";
+import LeaseRoutes from "./routes/leases";
+import TicketRoutes from "./routes/tickets";
 
 async function initServer() {
-  const app = express();
-  app.use(express.json());
+  const app = express().use(express.json());
   await ConnectDB();
-  await ConnectUserCollection();
 
   //Routes
   app.use("/docs", await TspecDocsMiddleware());
   app.use("/auth", AuthRoutes);
   app.use("/users", UserRoutes);
-  app.get("/", (_req, res) =>
-    res.send({ status: STATUS_CODES[200], message: "success!" })
-  );
+  app.use("/houses", HouseRoutes);
+  app.use("/leases", LeaseRoutes);
+  app.use("/tickets", TicketRoutes);
+  app.get("/", (_req, res) => res.send({ status: 200, message: "success!" }));
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
-
-  return 0;
 }
 
 initServer();
