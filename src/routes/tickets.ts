@@ -17,19 +17,17 @@ TicketRoutes.route("/")
     try {
       const tickets = GetTickets();
       if (!tickets)
-        return res.sendStatus(404).json({ message: "No tickets found" });
-      return res.sendStatus(200).json({ tickets });
+        return res.status(404).json({ message: "No tickets found" });
+      return res.status(200).json({ tickets });
     } catch (error) {
-      return res
-        .sendStatus(500)
-        .json({ message: "Error getting tickets", error });
+      return res.status(500).json({ message: "Error getting tickets", error });
     }
   })
   .post(async (req, res) => {
     const { tenantId, houseId, submitDate, title, description } = req.body;
 
     if (!tenantId || !houseId || !submitDate || !title || !description)
-      return res.sendStatus(400).json({
+      return res.status(400).json({
         message:
           "Tenant id, house id, submit date, title, and description are required",
       });
@@ -59,13 +57,10 @@ TicketRoutes.route("/:ticketId")
   .get(async (req, res) => {
     try {
       const ticket = await GetTicketById(req.params.ticketId);
-      if (!ticket)
-        return res.sendStatus(404).json({ message: "Ticket not found" });
-      return res.sendStatus(200).json({ ticket });
+      if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+      return res.status(200).json({ ticket });
     } catch (error) {
-      return res
-        .sendStatus(500)
-        .json({ message: "Couldn't get ticket", error });
+      return res.status(500).json({ message: "Couldn't get ticket", error });
     }
   })
   .put(async (req, res) => {
@@ -75,50 +70,40 @@ TicketRoutes.route("/:ticketId")
         req.body.updateData
       );
       if (!ticketUpdated)
-        return res.sendStatus(400).json({ message: "Ticket not updated" });
-      return res
-        .sendStatus(200)
-        .json({ message: "Ticket updated successfully" });
+        return res.status(400).json({ message: "Ticket not updated" });
+      return res.status(200).json({ message: "Ticket updated successfully" });
     } catch (error) {
-      return res
-        .sendStatus(500)
-        .json({ message: "Error updating ticket", error });
+      return res.status(500).json({ message: "Error updating ticket", error });
     }
   })
   .delete(async (req, res) => {
     try {
       const ticketDeleted = await DeleteTicket(req.params.ticketId);
       if (!ticketDeleted)
-        return res.sendStatus(400).json({ message: "Ticket not deleted" });
-      return res
-        .sendStatus(200)
-        .json({ message: "Ticket deleted successfully" });
+        return res.status(400).json({ message: "Ticket not deleted" });
+      return res.status(200).json({ message: "Ticket deleted successfully" });
     } catch (error) {
-      return res
-        .sendStatus(500)
-        .json({ message: "Error deleting ticket", error });
+      return res.status(500).json({ message: "Error deleting ticket", error });
     }
   });
 
 TicketRoutes.get("/:houseId", async (req, res) => {
   try {
     const ticket = await GetTicketsByHouseId(req.params.houseId);
-    if (!ticket)
-      return res.sendStatus(404).json({ message: "Tickets not found" });
-    return res.sendStatus(200).json({ ticket });
+    if (!ticket) return res.status(404).json({ message: "Tickets not found" });
+    return res.status(200).json({ ticket });
   } catch (error) {
-    return res.sendStatus(500).json({ message: "Couldn't get ticket", error });
+    return res.status(500).json({ message: "Couldn't get ticket", error });
   }
 });
 
 TicketRoutes.get("/:tenantId", async (req, res) => {
   try {
     const ticket = await GetTicketsByTenantId(req.params.tenantId);
-    if (!ticket)
-      return res.sendStatus(404).json({ message: "Tickets not found" });
-    return res.sendStatus(200).json({ ticket });
+    if (!ticket) return res.status(404).json({ message: "Tickets not found" });
+    return res.status(200).json({ ticket });
   } catch (error) {
-    return res.sendStatus(500).json({ message: "Couldn't get ticket", error });
+    return res.status(500).json({ message: "Couldn't get ticket", error });
   }
 });
 

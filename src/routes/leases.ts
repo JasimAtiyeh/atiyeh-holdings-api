@@ -16,13 +16,10 @@ LeaseRoutes.route("/")
   .get(async (_req, res) => {
     try {
       const leases = GetLeases();
-      if (!leases)
-        return res.sendStatus(404).json({ message: "No leases found" });
-      return res.sendStatus(200).json({ leases });
+      if (!leases) return res.status(404).json({ message: "No leases found" });
+      return res.status(200).json({ leases });
     } catch (error) {
-      return res
-        .sendStatus(500)
-        .json({ message: "Error getting leases", error });
+      return res.status(500).json({ message: "Error getting leases", error });
     }
   })
   .post(async (req, res) => {
@@ -37,12 +34,10 @@ LeaseRoutes.route("/")
       !tenantId ||
       !houseId
     )
-      return res
-        .sendStatus(400)
-        .json({
-          message:
-            "Deposit, end date, rent price, start date, tenant id, and house id are required",
-        });
+      return res.status(400).json({
+        message:
+          "Deposit, end date, rent price, start date, tenant id, and house id are required",
+      });
 
     try {
       const existingLease = await GetLeaseByHouseId(houseId);
@@ -70,11 +65,10 @@ LeaseRoutes.route("/:leaseId")
   .get(async (req, res) => {
     try {
       const lease = await GetLeaseById(req.params.leaseId);
-      if (!lease)
-        return res.sendStatus(404).json({ message: "Lease not found" });
-      return res.sendStatus(200).json({ lease });
+      if (!lease) return res.status(404).json({ message: "Lease not found" });
+      return res.status(200).json({ lease });
     } catch (error) {
-      return res.sendStatus(500).json({ message: "Couldn't get lease", error });
+      return res.status(500).json({ message: "Couldn't get lease", error });
     }
   })
   .put(async (req, res) => {
@@ -84,48 +78,40 @@ LeaseRoutes.route("/:leaseId")
         req.body.updateData
       );
       if (!leaseUpdated)
-        return res.sendStatus(400).json({ message: "Lease not updated" });
-      return res
-        .sendStatus(200)
-        .json({ message: "Lease updated successfully" });
+        return res.status(400).json({ message: "Lease not updated" });
+      return res.status(200).json({ message: "Lease updated successfully" });
     } catch (error) {
-      return res
-        .sendStatus(500)
-        .json({ message: "Error updating lease", error });
+      return res.status(500).json({ message: "Error updating lease", error });
     }
   })
   .delete(async (req, res) => {
     try {
       const leaseDeleted = await DeleteLease(req.params.leaseId);
       if (!leaseDeleted)
-        return res.sendStatus(400).json({ message: "Lease not deleted" });
-      return res
-        .sendStatus(200)
-        .json({ message: "Lease deleted successfully" });
+        return res.status(400).json({ message: "Lease not deleted" });
+      return res.status(200).json({ message: "Lease deleted successfully" });
     } catch (error) {
-      return res
-        .sendStatus(500)
-        .json({ message: "Error deleting lease", error });
+      return res.status(500).json({ message: "Error deleting lease", error });
     }
   });
 
 LeaseRoutes.get("/:houseId", async (req, res) => {
   try {
     const lease = await GetLeaseByHouseId(req.params.houseId);
-    if (!lease) return res.sendStatus(404).json({ message: "Lease not found" });
-    return res.sendStatus(200).json({ lease });
+    if (!lease) return res.status(404).json({ message: "Lease not found" });
+    return res.status(200).json({ lease });
   } catch (error) {
-    return res.sendStatus(500).json({ message: "Couldn't get lease", error });
+    return res.status(500).json({ message: "Couldn't get lease", error });
   }
 });
 
 LeaseRoutes.get("/:tenantId", async (req, res) => {
   try {
     const lease = await GetLeaseByTenantId(req.params.tenantId);
-    if (!lease) return res.sendStatus(404).json({ message: "Lease not found" });
-    return res.sendStatus(200).json({ lease });
+    if (!lease) return res.status(404).json({ message: "Lease not found" });
+    return res.status(200).json({ lease });
   } catch (error) {
-    return res.sendStatus(500).json({ message: "Couldn't get lease", error });
+    return res.status(500).json({ message: "Couldn't get lease", error });
   }
 });
 

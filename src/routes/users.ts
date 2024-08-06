@@ -22,9 +22,7 @@ UserRoutes.route("/")
       });
       return res.status(200).json({ users: returnUsers });
     } catch (error) {
-      return res
-        .sendStatus(500)
-        .json({ message: "Error getting users", error });
+      return res.status(500).json({ message: "Error getting users", error });
     }
   })
   .post(async (req, res) => {
