@@ -41,6 +41,15 @@ export async function ConnectDB() {
 export async function GetCollection<T extends Doc>(
   collectionName: string
 ): Promise<Collection<T>> {
+  const collections = await db.listCollections().toArray();
+  const collection = collections.find(
+    (collection) => collection.name === collectionName
+  );
+
+  if (collection) {
+    return db.collection<T>(collectionName);
+  }
+
   db.createCollection<T>(collectionName, {
     validator: schemaValidators[collectionName],
   });
