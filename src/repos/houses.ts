@@ -42,7 +42,12 @@ async function GetHouseForTenant(tenantId: string): Promise<House | null> {
 
 // Get houses
 async function GetHouses(): Promise<House[] | null> {
-  const houses = await houseCollection.find<House>({}).toArray();
+  const houses = await houseCollection
+    .find<House>({})
+    .toArray()
+    .catch((error) => {
+      throw new Error(error);
+    });
   if (!houses.length) return null;
   return houses;
 }
