@@ -1,13 +1,13 @@
 {
-  "name": "atiyeh_holdings",
+  "name": "atiyeh_holdings_be",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "module": "es2022",
   "scripts": {
-    "build": "webpack --config webpack.server.config.js && npm run gen-swag",
-    "dev": "npm run build && nodemon src/index.ts",
+    "build": "webpack && npm run gen-swag",
     "gen-swag": "tspec generate --outputPath openapi.json --openapiTitle 'Atiyeh Holdings' --specPathGlobs src/models/**/*.ts",
+    "dev": "npm run gen-swag && nodemon src/index.ts",
     "start": "node dist/index.js"
   },
   "keywords": [],
