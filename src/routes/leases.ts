@@ -1,12 +1,12 @@
 import express from "express";
 import {
-  CreateLease,
-  DeleteLease,
-  GetLeaseByHouseId,
-  GetLeaseById,
-  GetLeaseByTenantId,
-  GetLeases,
-  UpdateLease,
+  createLease,
+  deleteLease,
+  getLeaseByHouseId,
+  getLeaseById,
+  getLeaseByTenantId,
+  getLeases,
+  updateLease,
 } from "../repos/leases";
 
 const LeaseRoutes = express.Router();
@@ -15,8 +15,9 @@ LeaseRoutes.use(express.json());
 LeaseRoutes.route("/")
   .get(async (_req, res) => {
     try {
-      const leases = GetLeases();
-      if (!leases) return res.status(404).json({ message: "No leases found" });
+      const leases = await getLeases();
+      if (!leases.length)
+        return res.status(404).json({ message: "No leases found" });
       return res.status(200).json({ leases });
     } catch (error) {
       return res.status(500).json({ message: "Error getting leases", error });
@@ -25,7 +26,6 @@ LeaseRoutes.route("/")
   .post(async (req, res) => {
     const { deposit, endDate, rentPrice, startDate, tenantId, houseId } =
       req.body;
-
     if (
       !deposit ||
       !endDate ||
@@ -33,19 +33,16 @@ LeaseRoutes.route("/")
       !startDate ||
       !tenantId ||
       !houseId
-    )
-      return res.status(400).json({
-        message:
-          "Deposit, end date, rent price, start date, tenant id, and house id are required",
-      });
+    ) {
+      return res.status(400).json({ message: "All lease fields are required" });
+    }
 
     try {
-      const existingLease = await GetLeaseByHouseId(houseId);
-      if (existingLease) {
-        return res.status(400).json({ error: "Lease already exists" });
-      }
+      const existingLease = await getLeaseByHouseId(houseId);
+      if (existingLease)
+        return res.status(400).json({ message: "Lease already exists" });
 
-      const lease = await CreateLease(
+      const leaseId = await createLease(
         deposit,
         endDate,
         rentPrice,
@@ -53,9 +50,7 @@ LeaseRoutes.route("/")
         tenantId,
         houseId
       );
-      if (!lease.acknowledged)
-        return res.status(500).json({ message: "Error creating lease" });
-      return res.status(201).json({ leaseId: lease.insertedId.toString() });
+      return res.status(201).json({ leaseId });
     } catch (error) {
       return res.status(500).json({ message: "Lease not created", error });
     }
@@ -64,7 +59,7 @@ LeaseRoutes.route("/")
 LeaseRoutes.route("/:leaseId")
   .get(async (req, res) => {
     try {
-      const lease = await GetLeaseById(req.params.leaseId);
+      const lease = await getLeaseById(Number(req.params.leaseId));
       if (!lease) return res.status(404).json({ message: "Lease not found" });
       return res.status(200).json({ lease });
     } catch (error) {
@@ -73,11 +68,8 @@ LeaseRoutes.route("/:leaseId")
   })
   .put(async (req, res) => {
     try {
-      const leaseUpdated = await UpdateLease(
-        req.params.leaseId,
-        req.body.updateData
-      );
-      if (!leaseUpdated)
+      const success = await updateLease(Number(req.params.leaseId), req.body);
+      if (!success)
         return res.status(400).json({ message: "Lease not updated" });
       return res.status(200).json({ message: "Lease updated successfully" });
     } catch (error) {
@@ -86,8 +78,8 @@ LeaseRoutes.route("/:leaseId")
   })
   .delete(async (req, res) => {
     try {
-      const leaseDeleted = await DeleteLease(req.params.leaseId);
-      if (!leaseDeleted)
+      const success = await deleteLease(Number(req.params.leaseId));
+      if (!success)
         return res.status(400).json({ message: "Lease not deleted" });
       return res.status(200).json({ message: "Lease deleted successfully" });
     } catch (error) {
@@ -95,9 +87,9 @@ LeaseRoutes.route("/:leaseId")
     }
   });
 
-LeaseRoutes.get("/:houseId", async (req, res) => {
+LeaseRoutes.get("/house/:houseId", async (req, res) => {
   try {
-    const lease = await GetLeaseByHouseId(req.params.houseId);
+    const lease = await getLeaseByHouseId(Number(req.params.houseId));
     if (!lease) return res.status(404).json({ message: "Lease not found" });
     return res.status(200).json({ lease });
   } catch (error) {
@@ -105,9 +97,9 @@ LeaseRoutes.get("/:houseId", async (req, res) => {
   }
 });
 
-LeaseRoutes.get("/:tenantId", async (req, res) => {
+LeaseRoutes.get("/tenant/:tenantId", async (req, res) => {
   try {
-    const lease = await GetLeaseByTenantId(req.params.tenantId);
+    const lease = await getLeaseByTenantId(Number(req.params.tenantId));
     if (!lease) return res.status(404).json({ message: "Lease not found" });
     return res.status(200).json({ lease });
   } catch (error) {

@@ -1,0 +1,297 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2024-01-01T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.7.1",
+  "resources": [
+    {
+      "_id": "wrk_1",
+      "_type": "workspace",
+      "name": "API Tests",
+      "description": "",
+      "scope": "collection"
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "name": "Auth",
+      "parentId": "wrk_1"
+    },
+    {
+      "_id": "req_auth_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login",
+      "method": "POST",
+      "url": "http://localhost:3000/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"adminpassword\"\n}"
+      }
+    },
+    {
+      "_id": "fld_users",
+      "_type": "request_group",
+      "name": "Users",
+      "parentId": "wrk_1"
+    },
+    {
+      "_id": "req_users_get_all",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Get All Users",
+      "method": "GET",
+      "url": "http://localhost:3000/users"
+    },
+    {
+      "_id": "req_users_get_by_id",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Get User By ID",
+      "method": "GET",
+      "url": "http://localhost:3000/users/1"
+    },
+    {
+      "_id": "req_users_create",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Create User",
+      "method": "POST",
+      "url": "http://localhost:3000/users",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"New Tenant\",\n  \"email\": \"tenant2@example.com\",\n  \"password\": \"tenantpassword\",\n  \"role\": \"tenant\"\n}"
+      }
+    },
+    {
+      "_id": "req_users_update",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Update User",
+      "method": "PUT",
+      "url": "http://localhost:3000/users/4",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Updated Tenant\"\n}"
+      }
+    },
+    {
+      "_id": "req_users_delete",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Delete User",
+      "method": "DELETE",
+      "url": "http://localhost:3000/users/4"
+    },
+    {
+      "_id": "fld_houses",
+      "_type": "request_group",
+      "name": "Houses",
+      "parentId": "wrk_1"
+    },
+    {
+      "_id": "req_houses_get_all",
+      "_type": "request",
+      "parentId": "fld_houses",
+      "name": "Get All Houses",
+      "method": "GET",
+      "url": "http://localhost:3000/houses"
+    },
+    {
+      "_id": "req_houses_get_by_id",
+      "_type": "request",
+      "parentId": "fld_houses",
+      "name": "Get House By ID",
+      "method": "GET",
+      "url": "http://localhost:3000/houses/1"
+    },
+    {
+      "_id": "req_houses_create",
+      "_type": "request",
+      "parentId": "fld_houses",
+      "name": "Create House",
+      "method": "POST",
+      "url": "http://localhost:3000/houses",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"address\": \"789 Oak St\",\n  \"name\": \"Oak Haven\",\n  \"ownerIds\": [2],\n  \"details\": {\n    \"bedrooms\": 2,\n    \"bathrooms\": 1,\n    \"currentValue\": 250000,\n    \"purchasePrice\": 200000,\n    \"sqft\": 1200\n  },\n  \"tenantId\": null\n}"
+      }
+    },
+    {
+      "_id": "req_houses_update",
+      "_type": "request",
+      "parentId": "fld_houses",
+      "name": "Update House",
+      "method": "PUT",
+      "url": "http://localhost:3000/houses/5",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"updateData\": {\n    \"name\": \"Oak Haven Renovated\"\n  }\n}"
+      }
+    },
+    {
+      "_id": "req_houses_delete",
+      "_type": "request",
+      "parentId": "fld_houses",
+      "name": "Delete House",
+      "method": "DELETE",
+      "url": "http://localhost:3000/houses/5"
+    },
+    {
+      "_id": "req_houses_for_owner",
+      "_type": "request",
+      "parentId": "fld_houses",
+      "name": "Get Houses for Owner",
+      "method": "GET",
+      "url": "http://localhost:3000/houses/user/2"
+    },
+    {
+      "_id": "req_houses_for_tenant",
+      "_type": "request",
+      "parentId": "fld_houses",
+      "name": "Get House for Tenant",
+      "method": "GET",
+      "url": "http://localhost:3000/houses/tenant/3"
+    },
+    {
+      "_id": "fld_leases",
+      "_type": "request_group",
+      "name": "Leases",
+      "parentId": "wrk_1"
+    },
+    {
+      "_id": "req_leases_get_all",
+      "_type": "request",
+      "parentId": "fld_leases",
+      "name": "Get All Leases",
+      "method": "GET",
+      "url": "http://localhost:3000/leases"
+    },
+    {
+      "_id": "req_leases_get_by_id",
+      "_type": "request",
+      "parentId": "fld_leases",
+      "name": "Get Lease by ID",
+      "method": "GET",
+      "url": "http://localhost:3000/leases/1"
+    },
+    {
+      "_id": "req_leases_create",
+      "_type": "request",
+      "parentId": "fld_leases",
+      "name": "Create Lease",
+      "method": "POST",
+      "url": "http://localhost:3000/leases",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"deposit\": 1200,\n  \"endDate\": \"2024-11-30\",\n  \"rentPrice\": 1300,\n  \"startDate\": \"2024-02-01\",\n  \"tenantId\": 3,\n  \"houseId\": 2\n}"
+      }
+    },
+    {
+      "_id": "req_leases_update",
+      "_type": "request",
+      "parentId": "fld_leases",
+      "name": "Update Lease",
+      "method": "PUT",
+      "url": "http://localhost:3000/leases/2",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"rentPrice\": 1400\n}"
+      }
+    },
+    {
+      "_id": "req_leases_delete",
+      "_type": "request",
+      "parentId": "fld_leases",
+      "name": "Delete Lease",
+      "method": "DELETE",
+      "url": "http://localhost:3000/leases/2"
+    },
+    {
+      "_id": "req_leases_by_house",
+      "_type": "request",
+      "parentId": "fld_leases",
+      "name": "Get Lease by House ID",
+      "method": "GET",
+      "url": "http://localhost:3000/leases/house/1"
+    },
+    {
+      "_id": "req_leases_by_tenant",
+      "_type": "request",
+      "parentId": "fld_leases",
+      "name": "Get Lease by Tenant ID",
+      "method": "GET",
+      "url": "http://localhost:3000/leases/tenant/3"
+    },
+    {
+      "_id": "fld_tickets",
+      "_type": "request_group",
+      "name": "Tickets",
+      "parentId": "wrk_1"
+    },
+    {
+      "_id": "req_tickets_get_all",
+      "_type": "request",
+      "parentId": "fld_tickets",
+      "name": "Get All Tickets",
+      "method": "GET",
+      "url": "http://localhost:3000/tickets"
+    },
+    {
+      "_id": "req_tickets_get_by_id",
+      "_type": "request",
+      "parentId": "fld_tickets",
+      "name": "Get Ticket by ID",
+      "method": "GET",
+      "url": "http://localhost:3000/tickets/1"
+    },
+    {
+      "_id": "req_tickets_create",
+      "_type": "request",
+      "parentId": "fld_tickets",
+      "name": "Create Ticket",
+      "method": "POST",
+      "url": "http://localhost:3000/tickets",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"tenantId\": 3,\n  \"houseId\": 1,\n  \"submitDate\": \"2024-03-01\",\n  \"title\": \"Broken Window\",\n  \"description\": \"The window in the bedroom is broken and won't close.\"\n}"
+      }
+    },
+    {
+      "_id": "req_tickets_update",
+      "_type": "request",
+      "parentId": "fld_tickets",
+      "name": "Update Ticket",
+      "method": "PUT",
+      "url": "http://localhost:3000/tickets/2",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"responded\"\n}"
+      }
+    },
+    {
+      "_id": "req_tickets_delete",
+      "_type": "request",
+      "parentId": "fld_tickets",
+      "name": "Delete Ticket",
+      "method": "DELETE",
+      "url": "http://localhost:3000/tickets/2"
+    },
+    {
+      "_id": "req_tickets_by_house",
+      "_type": "request",
+      "parentId": "fld_tickets",
+      "name": "Get Tickets by House ID",
+      "method": "GET",
+      "url": "http://localhost:3000/tickets/house/1"
+    },
+    {
+      "_id": "req_tickets_by_tenant",
+      "_type": "request",
+      "parentId": "fld_tickets",
+      "name": "Get Tickets by Tenant ID",
+      "method": "GET",
+      "url": "http://localhost:3000/tickets/tenant/3"
+    }
+  ]
+}

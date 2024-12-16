@@ -1,101 +1,55 @@
-import { Collection, InsertOneResult, ObjectId } from "mongodb";
-import { Ticket } from "../models/tickets";
-import { GetCollection } from ".";
+import knexDb from "../database";
+import { Ticket } from "../models/ticket";
 
-let ticketCollection: Collection<Ticket>;
-
-export async function ConnectTicketCollection() {
-  ticketCollection = await GetCollection<Ticket>(
-    process.env.TICKET_COLLECTION as string
-  );
+export async function getTickets(): Promise<Ticket[]> {
+  const tickets = await knexDb("Ticket").select("*");
+  return tickets as Ticket[];
 }
 
-// Get tickets
-async function GetTickets(): Promise<Ticket[] | null> {
-  const tickets = await ticketCollection.find<Ticket>({}).toArray();
-  if (!tickets) return null;
-  return tickets;
+export async function getTicketById(ticketId: number): Promise<Ticket | null> {
+  const ticket = await knexDb("Ticket").where("id", ticketId).first();
+  return ticket || null;
 }
 
-// Get ticket by id
-async function GetTicketById(leaseId: string): Promise<Ticket | null> {
-  const ticket = await ticketCollection.findOne<Ticket>({
-    _id: new ObjectId(leaseId),
-  });
-  if (!ticket) return null;
-  return ticket;
+export async function getTicketsByHouseId(houseId: number): Promise<Ticket[]> {
+  const tickets = await knexDb("Ticket").where("houseId", houseId);
+  return tickets as Ticket[];
 }
 
-// Get tickets by house id
-async function GetTicketsByHouseId(houseId: string): Promise<Ticket[] | null> {
-  const tickets = await ticketCollection
-    .find<Ticket>({
-      houseId: new ObjectId(houseId),
-    })
-    .toArray();
-  if (!tickets) return null;
-  return tickets;
+export async function getTicketsByTenantId(
+  tenantId: number
+): Promise<Ticket[]> {
+  const tickets = await knexDb("Ticket").where("tenantId", tenantId);
+  return tickets as Ticket[];
 }
 
-// Get tickets by tenant id
-async function GetTicketsByTenantId(
-  tenantId: string
-): Promise<Ticket[] | null> {
-  const tickets = await ticketCollection
-    .find<Ticket>({
-      tenantId: new ObjectId(tenantId),
-    })
-    .toArray();
-  if (!tickets) return null;
-  return tickets;
-}
-
-// Create lease
-async function CreateTicket(
-  tenantId: string,
-  houseId: string,
+export async function createTicket(
+  tenantId: number,
+  houseId: number,
   submitDate: string,
   title: string,
   description: string
-): Promise<InsertOneResult<Ticket>> {
-  const userCreated = await ticketCollection.insertOne({
-    tenantId: new ObjectId(tenantId),
-    houseId: new ObjectId(houseId),
-    submitDate: new Date(submitDate),
+): Promise<number> {
+  const [newTicketId] = await knexDb("Ticket").insert({
+    tenantId,
+    houseId,
+    submitDate,
     title,
     description,
-  } as Ticket);
-  return userCreated;
-}
-
-// Update ticket
-async function UpdateTicket(
-  ticketId: string,
-  updateData: Ticket
-): Promise<boolean> {
-  const ticketUpdated = await ticketCollection.updateOne(
-    { _id: new ObjectId(ticketId) },
-    { $set: updateData }
-  );
-  const { acknowledged, modifiedCount } = ticketUpdated;
-  if (!acknowledged && modifiedCount === 0) return false;
-  return true;
-}
-
-// Delete ticket
-async function DeleteTicket(ticketId: string): Promise<boolean> {
-  const ticketDeleted = await ticketCollection.deleteOne({
-    _id: new ObjectId(ticketId),
+    status: "read",
   });
-  return ticketDeleted.acknowledged;
+  return newTicketId;
 }
 
-export {
-  GetTickets,
-  GetTicketById,
-  GetTicketsByHouseId,
-  GetTicketsByTenantId,
-  CreateTicket,
-  UpdateTicket,
-  DeleteTicket,
-};
+export async function updateTicket(
+  ticketId: number,
+  updateData: Partial<Ticket>
+): Promise<boolean> {
+  const rows = await knexDb("Ticket").where("id", ticketId).update(updateData);
+  return rows > 0;
+}
+
+export async function deleteTicket(ticketId: number): Promise<boolean> {
+  const rows = await knexDb("Ticket").where("id", ticketId).delete();
+  return rows > 0;
+}

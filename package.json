@@ -2,36 +2,37 @@
   "name": "atiyeh_holdings_be",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "module": "es2022",
+  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "webpack && npm run gen-swag",
-    "gen-swag": "tspec generate --outputPath openapi.json --openapiTitle 'Atiyeh Holdings' --specPathGlobs src/models/**/*.ts",
-    "dev": "npm run gen-swag && nodemon src/index.ts",
-    "start": "node dist/index.js"
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js",
+    "dev": "nodemon src/index.ts",
+    "test": "jest --runInBand",
+    "test:watch": "jest --runInBand --watchAll"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "@types/bcrypt": "^5.0.2",
-    "@types/jsonwebtoken": "^9.0.6",
     "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.6.1",
-    "tspec": "^0.1.112"
+    "knex": "^3.1.0",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
-    "@types/dotenv": "^8.2.0",
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.8",
     "@types/express": "^4.17.21",
-    "@types/node": "^20.12.11",
+    "@types/jest": "^29.5.14",
+    "@types/jsonwebtoken": "^9.0.6",
+    "@types/knex": "^0.16.1",
+    "@types/node": "^20.17.10",
+    "@types/supertest": "^6.0.2",
+    "jest": "^29.7.0",
     "nodemon": "^3.1.0",
-    "ts-loader": "^9.5.1",
-    "typescript": "^5.4.5",
-    "webpack": "^5.91.0",
-    "webpack-cli": "^5.1.4",
-    "webpack-node-externals": "^3.0.0"
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.4.5"
   }
 }

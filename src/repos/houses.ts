@@ -1,103 +1,102 @@
-import { Collection, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
-import { GetCollection } from ".";
-import "dotenv/config";
-import { House, HouseDetails } from "../models/houses";
+import knexDb from "../database";
+import { House, HouseDetails } from "../models/house";
 
-let houseCollection: Collection<House>;
-
-export async function ConnectHouseCollection() {
-  houseCollection = await GetCollection<House>(
-    process.env.HOUSE_COLLECTION as string
-  );
+export async function getHouses(): Promise<House[]> {
+  return knexDb<House>("House").select("*");
 }
 
-// Get house by id
-async function GetHouseById(houseId: string): Promise<House | null> {
-  const house = await houseCollection.findOne<House>({
-    _id: new ObjectId(houseId),
-  });
-  if (!house) return null;
-  return house;
+export async function getHouseById(houseId: number): Promise<House | null> {
+  const house = await knexDb<House>("House").where("id", houseId).first();
+  return house || null;
 }
 
-// Get houses for owner
-async function GetHousesForOwner(ownerId: string): Promise<House[] | null> {
-  const houses = await houseCollection
-    .find<House>({
-      ownerIds: { _id: new ObjectId(ownerId) },
-    })
-    .toArray();
-  if (!houses) return null;
-  return houses;
-}
-
-// Get house for tenant
-async function GetHouseForTenant(tenantId: string): Promise<House | null> {
-  const house = await houseCollection.findOne<House>({
-    leaseId: { tenantId },
-  });
-  if (!house) return null;
-  return house;
-}
-
-// Get houses
-async function GetHouses(): Promise<House[] | null> {
-  const houses = await houseCollection
-    .find<House>({})
-    .toArray()
-    .catch((error) => {
-      throw new Error(error);
-    });
-  if (!houses.length) return null;
-  return houses;
-}
-
-// Create house
-async function CreateHouse(
+export async function createHouse(
   address: string,
   name: string,
-  ownerIds: Array<ObjectId>,
-  details?: HouseDetails,
-  leaseId?: ObjectId
-): Promise<InsertOneResult<House>> {
-  const houseCreated = await houseCollection.insertOne({
-    address,
-    name,
-    ownerIds,
-    details,
-    leaseId,
+  ownerIds: number[],
+  details: Partial<HouseDetails> | null,
+  tenantId?: number | null
+): Promise<House | null> {
+  return await knexDb.transaction(async (trx) => {
+    const houseIds = await trx<House>("House").insert({
+      address,
+      name,
+      tenantId,
+    });
+    const insertedHouseId = houseIds[0];
+
+    if (details) {
+      const detailsIds = await trx<HouseDetails>("HouseDetails").insert({
+        houseId: insertedHouseId,
+        bathrooms: details.bathrooms as number,
+        bedrooms: details.bedrooms as number,
+        currentValue: details.currentValue as number,
+        purchasePrice: details.purchasePrice as number,
+        sqft: details.sqft as number,
+      });
+      const insertedDetailsId = detailsIds[0];
+
+      await trx<House>("House")
+        .where("id", insertedHouseId)
+        .update({ detailsId: insertedDetailsId });
+    }
+
+    const ownerRelations = ownerIds.map((ownerId) => ({
+      houseId: insertedHouseId,
+      userId: ownerId,
+    }));
+    await trx("HouseUser").insert(ownerRelations);
+
+    const newHouse = await trx<House>("House")
+      .where("id", insertedHouseId)
+      .first();
+    return newHouse || null;
   });
-  return houseCreated;
 }
 
-// Update house
-async function UpdateHouse(
-  houseId: string,
-  updateData: Partial<House>
+export async function updateHouse(
+  id: number,
+  updateData: Partial<House>,
+  updateDetails?: Partial<HouseDetails>
 ): Promise<boolean> {
-  const houseUpdated = await houseCollection.updateOne(
-    { _id: new ObjectId(houseId) },
-    { $set: updateData }
-  );
-  const { acknowledged, modifiedCount } = houseUpdated;
-  if (!acknowledged && modifiedCount === 0) return false;
-  return true;
-}
+  return await knexDb.transaction(async (trx) => {
+    let updated = false;
 
-// Delete house
-async function DeleteHouse(houseId: string): Promise<boolean> {
-  const houseDeleted = await houseCollection.deleteOne({
-    _id: new ObjectId(houseId),
+    if (Object.keys(updateData).length > 0) {
+      const houseUpdateCount = await trx<House>("House")
+        .where("id", id)
+        .update(updateData);
+      if (houseUpdateCount > 0) updated = true;
+    }
+
+    if (updateDetails && Object.keys(updateDetails).length > 0) {
+      const detailsUpdateCount = await trx<HouseDetails>("HouseDetails")
+        .where("houseId", id)
+        .update(updateDetails);
+      if (detailsUpdateCount > 0) updated = true;
+    }
+
+    return updated;
   });
-  return houseDeleted.acknowledged;
 }
 
-export {
-  GetHouseById,
-  GetHousesForOwner,
-  GetHouseForTenant,
-  GetHouses,
-  CreateHouse,
-  UpdateHouse,
-  DeleteHouse,
-};
+export async function deleteHouse(id: number): Promise<boolean> {
+  const rows = await knexDb("House").where("id", id).delete();
+  return rows > 0;
+}
+
+export async function getHousesForOwner(userId: number): Promise<House[]> {
+  return knexDb("House")
+    .join("HouseUser", "House.id", "HouseUser.houseId")
+    .where("HouseUser.userId", userId)
+    .select("House.*");
+}
+
+export async function getHouseForTenant(
+  tenantId: number
+): Promise<House | null> {
+  const house = await knexDb<House>("House")
+    .where("tenantId", tenantId)
+    .first();
+  return house || null;
+}

@@ -1,85 +1,35 @@
-import { Collection, InsertOneResult, ObjectId } from "mongodb";
-import { GetCollection } from ".";
-import bcrypt from "bcrypt";
-import "dotenv/config";
-import { UserRole, UserTypes } from "../models/users";
+import knexDb from "../database";
+import { User } from "../models/user";
 
-let userCollection: Collection<UserTypes>;
-
-export async function ConnectUserCollection() {
-  userCollection = await GetCollection<UserTypes>(
-    process.env.USER_COLLECTION as string
-  );
+export async function getUserById(userId: number): Promise<User | null> {
+  const user = await knexDb<User>("User").where("id", userId).first();
+  console.log(userId);
+  return user || null;
 }
 
-// Get user by id
-async function GetUserById(userId: string): Promise<UserTypes | null> {
-  const user = await userCollection.findOne<UserTypes>({
-    _id: new ObjectId(userId),
-  });
-  if (!user) return null;
-  return user;
+export async function getUserByEmail(email: string): Promise<User | null> {
+  const user = await knexDb<User>("User").where("email", email).first();
+  return user || null;
 }
 
-// Get user by email
-async function GetUserByEmail(email: string): Promise<UserTypes | null> {
-  const user = await userCollection.findOne<UserTypes>({ email });
-  if (!user) return null;
-  return user;
+export async function getUsers(): Promise<User[]> {
+  return await knexDb<User>("User").select("*");
 }
 
-// Get users
-async function GetUsers(): Promise<UserTypes[] | null> {
-  const users = await userCollection.find<UserTypes>({}).toArray();
-  if (!users.length) return null;
-  return users;
+export async function createUser(user: Partial<User>): Promise<User | null> {
+  const [userId] = await knexDb<User>("User").insert(user).returning("id");
+  return getUserById(Number(userId.id));
 }
 
-// Create user
-async function CreateUser(
-  name: string,
-  email: string,
-  password: string,
-  role: UserRole
-): Promise<InsertOneResult<UserTypes>> {
-  // Make object dynamic depending on role
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const userCreated = await userCollection.insertOne({
-    name,
-    email,
-    password: hashedPassword,
-    role,
-  } as UserTypes);
-  return userCreated;
-}
-
-// Update user
-async function UpdateUser(
-  userId: string,
-  updateData: Partial<UserTypes>
+export async function updateUser(
+  id: number,
+  updates: Partial<User>
 ): Promise<boolean> {
-  const userUpdated = await userCollection.updateOne(
-    { _id: new ObjectId(userId) },
-    { $set: updateData }
-  );
-  const { acknowledged, modifiedCount } = userUpdated;
-  if (!acknowledged && modifiedCount === 0) return false;
-  return true;
+  const rows = await knexDb<User>("User").where("id", id).update(updates);
+  return rows > 0;
 }
 
-// Delete user
-async function DeleteUser(userId: string): Promise<boolean> {
-  const userDeleted = await userCollection.deleteOne({
-    _id: new ObjectId(userId),
-  });
-  return userDeleted.acknowledged;
+export async function deleteUser(id: number): Promise<boolean> {
+  const rows = await knexDb<User>("User").where("id", id).delete();
+  return rows > 0;
 }
-
-export {
-  GetUserById,
-  GetUserByEmail,
-  CreateUser,
-  GetUsers,
-  UpdateUser,
-  DeleteUser,
-};

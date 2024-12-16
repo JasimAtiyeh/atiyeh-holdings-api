@@ -1,11 +1,10 @@
 import express from "express";
 import {
-  CreateUser,
-  DeleteUser,
-  GetUserById,
-  GetUserByEmail,
-  GetUsers,
-  UpdateUser,
+  getUsers,
+  createUser,
+  getUserById,
+  updateUser,
+  deleteUser,
 } from "../repos/users";
 
 const UserRoutes = express.Router();
@@ -14,59 +13,45 @@ UserRoutes.use(express.json());
 UserRoutes.route("/")
   .get(async (_req, res) => {
     try {
-      const users = await GetUsers();
-      if (!users) return res.status(404).json({ message: "No users found" });
-      const returnUsers = users.map((user) => {
-        delete user.password;
-        return user;
-      });
-      return res.status(200).json({ users: returnUsers });
+      const users = await getUsers();
+      if (!users.length) {
+        return res.status(404).json({ message: "No users found" });
+      }
+      const sanitized = users.map(({ password, ...u }) => u);
+      return res.status(200).json(sanitized);
     } catch (error) {
-      return res.status(500).json({ message: "Error getting users", error });
+      return res.status(500).json({ message: "Error fetching users", error });
     }
   })
   .post(async (req, res) => {
     const { name, email, password, role } = req.body;
-
-    if (!email || !password || !name) {
-      return res
-        .status(400)
-        .json({ message: "Name, email, and password are required" });
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({ message: "All fields are required" });
     }
-
     try {
-      const existingUser = await GetUserByEmail(email);
-      if (existingUser) {
-        return res.status(400).json({ error: "Username already exists" });
-      }
-
-      const user = await CreateUser(name, email, password, role);
-      if (!user.acknowledged)
-        return res.status(500).json({ message: "Error creating user" });
-      return res.status(201).json({ userId: user.insertedId.toString() });
+      const user = await createUser({ name, email, password, role });
+      if (!user) return res.status(500).json({ message: "User not created" });
+      return res.status(201).json({ id: user.id });
     } catch (error) {
-      return res.status(500).json({ message: "User not created", error });
+      return res.status(500).json({ message: "Error creating user", error });
     }
   });
 
 UserRoutes.route("/:userId")
   .get(async (req, res) => {
     try {
-      const user = await GetUserById(req.params.userId);
+      const user = await getUserById(Number(req.params.userId));
       if (!user) return res.status(404).json({ message: "User not found" });
-      delete user.password;
-      return res.status(200).json({ user });
+      const { password, ...sanitized } = user;
+      return res.status(200).json(sanitized);
     } catch (error) {
-      return res.status(500).json({ message: "Couldn't get user", error });
+      return res.status(500).json({ message: "Error fetching user", error });
     }
   })
   .put(async (req, res) => {
     try {
-      const userUpdated = await UpdateUser(
-        req.params.userId,
-        req.body.updateData
-      );
-      if (!userUpdated)
+      const success = await updateUser(Number(req.params.userId), req.body);
+      if (!success)
         return res.status(400).json({ message: "User not updated" });
       return res.status(200).json({ message: "User updated successfully" });
     } catch (error) {
@@ -75,12 +60,12 @@ UserRoutes.route("/:userId")
   })
   .delete(async (req, res) => {
     try {
-      const userDeleted = await DeleteUser(req.params.userId);
-      if (!userDeleted)
+      const success = await deleteUser(Number(req.params.userId));
+      if (!success)
         return res.status(400).json({ message: "User not deleted" });
       return res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
-      return res.status(500).json({ message: "User not deleted", error });
+      return res.status(500).json({ message: "Error deleting user", error });
     }
   });
 

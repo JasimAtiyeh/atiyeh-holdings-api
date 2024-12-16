@@ -1,97 +1,60 @@
-import { Collection, InsertOneResult, ObjectId } from "mongodb";
-import { Lease } from "../models/leases";
-import { GetCollection } from ".";
+import knexDb from "@db/index";
+import { Lease } from "../models/lease";
 
-let leaseCollection: Collection<Lease>;
-
-export async function ConnectLeaseCollection() {
-  leaseCollection = await GetCollection<Lease>(
-    process.env.LEASE_COLLECTION as string
-  );
+export async function getLeases(): Promise<Lease[]> {
+  const leases = await knexDb("Lease").select("*");
+  return leases as Lease[];
 }
 
-// Get leases
-async function GetLeases(): Promise<Lease[] | null> {
-  const leases = await leaseCollection.find<Lease>({}).toArray();
-  if (!leases) return null;
-  return leases;
+export async function getLeaseById(leaseId: number): Promise<Lease | null> {
+  const lease = await knexDb("Lease").where("id", leaseId).first();
+  return lease || null;
 }
 
-// Get lease by id
-async function GetLeaseById(leaseId: string): Promise<Lease | null> {
-  const lease = await leaseCollection.findOne<Lease>({
-    _id: new ObjectId(leaseId),
-  });
-  if (!lease) return null;
-  return lease;
+export async function getLeaseByHouseId(
+  houseId: number
+): Promise<Lease | null> {
+  const lease = await knexDb("Lease").where("houseId", houseId).first();
+  return lease || null;
 }
 
-// Get lease by house id
-async function GetLeaseByHouseId(houseId: string): Promise<Lease | null> {
-  const lease = await leaseCollection.findOne<Lease>({
-    houseId: new ObjectId(houseId),
-  });
-  if (!lease) return null;
-  return lease;
+export async function getLeaseByTenantId(
+  tenantId: number
+): Promise<Lease | null> {
+  const lease = await knexDb("Lease").where("tenantId", tenantId).first();
+  return lease || null;
 }
 
-// Get lease by tenant id
-async function GetLeaseByTenantId(tenantId: string): Promise<Lease | null> {
-  const lease = await leaseCollection.findOne<Lease>({
-    tenantId: new ObjectId(tenantId),
-  });
-  if (!lease) return null;
-  return lease;
-}
-
-// Create lease
-async function CreateLease(
-  deposit: string,
+export async function createLease(
+  deposit: number,
   endDate: string,
-  rentPrice: string,
+  rentPrice: number,
   startDate: string,
-  tenantId: string,
-  houseId: string
-): Promise<InsertOneResult<Lease>> {
-  const userCreated = await leaseCollection.insertOne({
-    deposit: parseInt(deposit),
-    endDate: new Date(endDate),
-    rentPrice: parseInt(rentPrice),
-    startDate: new Date(startDate),
-    tenantId: new ObjectId(tenantId),
-    houseId: new ObjectId(houseId),
-  } as Lease);
-  return userCreated;
-}
-
-// Update lease
-async function UpdateLease(
-  leaseId: string,
-  updateData: Lease
-): Promise<boolean> {
-  const leaseUpdated = await leaseCollection.updateOne(
-    { _id: new ObjectId(leaseId) },
-    { $set: updateData }
-  );
-  const { acknowledged, modifiedCount } = leaseUpdated;
-  if (!acknowledged && modifiedCount === 0) return false;
-  return true;
-}
-
-// Delete lease
-async function DeleteLease(leaseId: string): Promise<boolean> {
-  const leaseDeleted = await leaseCollection.deleteOne({
-    _id: new ObjectId(leaseId),
+  tenantId: number,
+  houseId: number
+): Promise<number> {
+  const [newLeaseId] = await knexDb("Lease").insert({
+    deposit,
+    endDate,
+    rentPrice,
+    startDate,
+    tenantId,
+    houseId,
   });
-  return leaseDeleted.acknowledged;
+
+  await knexDb("House").where("id", houseId).update({ leaseId: newLeaseId });
+  return newLeaseId;
 }
 
-export {
-  GetLeases,
-  GetLeaseById,
-  GetLeaseByHouseId,
-  GetLeaseByTenantId,
-  CreateLease,
-  UpdateLease,
-  DeleteLease,
-};
+export async function updateLease(
+  leaseId: number,
+  updateData: Partial<Lease>
+): Promise<boolean> {
+  const rows = await knexDb("Lease").where("id", leaseId).update(updateData);
+  return rows > 0;
+}
+
+export async function deleteLease(leaseId: number): Promise<boolean> {
+  const rows = await knexDb("Lease").where("id", leaseId).delete();
+  return rows > 0;
+}

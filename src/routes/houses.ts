@@ -1,14 +1,13 @@
 import express from "express";
 import {
-  CreateHouse,
-  DeleteHouse,
-  GetHouseById,
-  GetHouseForTenant,
-  GetHouses,
-  GetHousesForOwner,
-  UpdateHouse,
+  createHouse,
+  deleteHouse,
+  getHouseById,
+  getHouseForTenant,
+  getHouses,
+  getHousesForOwner,
+  updateHouse,
 } from "../repos/houses";
-import { House } from "../models/houses";
 
 const HouseRoutes = express.Router();
 HouseRoutes.use(express.json());
@@ -16,32 +15,40 @@ HouseRoutes.use(express.json());
 HouseRoutes.route("/")
   .get(async (_req, res) => {
     try {
-      const houses = GetHouses();
-      if (!houses) return res.status(404).json({ message: "No houses found" });
+      const houses = await getHouses();
+      if (!houses.length)
+        return res.status(404).json({ message: "No houses found" });
       return res.status(200).json({ houses });
     } catch (error) {
       return res.status(500).json({ message: "Error getting houses", error });
     }
   })
   .post(async (req, res) => {
-    const { address, name, ownerIds } = req.body as House;
-
-    if (!address || !name || !ownerIds)
+    const { address, name, ownerIds, details, tenantId } = req.body;
+    if (!address || !name || !ownerIds || !ownerIds.length) {
       return res
         .status(400)
-        .json({ message: "Address, name, and owner ids are required" });
+        .json({ message: "Address, name, and ownerIds are required" });
+    }
 
     try {
-      const owner = ownerIds.at(0)?.toString() as string;
-      const existingHouse = await GetHousesForOwner(owner);
-      if (existingHouse) {
-        return res.status(400).json({ error: "House already exists" });
+      const existingHouses = await getHousesForOwner(ownerIds[0]);
+      if (existingHouses && existingHouses.length > 0) {
+        return res
+          .status(400)
+          .json({ message: "House already exists for this owner" });
       }
 
-      const house = await CreateHouse(address, name, ownerIds);
-      if (!house.acknowledged)
+      const house = await createHouse(
+        address,
+        name,
+        ownerIds,
+        details ?? null,
+        tenantId ?? null
+      );
+      if (!house)
         return res.status(500).json({ message: "Error creating house" });
-      return res.status(201).json({ houseId: house.insertedId.toString() });
+      return res.status(201).json({ houseId: house.id });
     } catch (error) {
       return res.status(500).json({ message: "House not created", error });
     }
@@ -50,7 +57,7 @@ HouseRoutes.route("/")
 HouseRoutes.route("/:houseId")
   .get(async (req, res) => {
     try {
-      const house = await GetHouseById(req.params.houseId);
+      const house = await getHouseById(Number(req.params.houseId));
       if (!house) return res.status(404).json({ message: "House not found" });
       return res.status(200).json({ house });
     } catch (error) {
@@ -58,12 +65,14 @@ HouseRoutes.route("/:houseId")
     }
   })
   .put(async (req, res) => {
+    const { updateData, updateDetails } = req.body;
     try {
-      const houseUpdated = await UpdateHouse(
-        req.params.houseId,
-        req.body.updateData
+      const success = await updateHouse(
+        Number(req.params.houseId),
+        updateData,
+        updateDetails
       );
-      if (!houseUpdated)
+      if (!success)
         return res.status(400).json({ message: "House not updated" });
       return res.status(200).json({ message: "House updated successfully" });
     } catch (error) {
@@ -72,29 +81,35 @@ HouseRoutes.route("/:houseId")
   })
   .delete(async (req, res) => {
     try {
-      const houseDeleted = await DeleteHouse(req.params.houseId);
-      if (!houseDeleted)
+      const success = await deleteHouse(Number(req.params.houseId));
+      if (!success)
         return res.status(400).json({ message: "House not deleted" });
       return res.status(200).json({ message: "House deleted successfully" });
     } catch (error) {
-      return res.status(500).json({ message: "Error deleting House", error });
+      return res.status(500).json({ message: "Error deleting house", error });
     }
   });
 
-HouseRoutes.get("/:ownerId", async (req, res) => {
+HouseRoutes.get("/user/:ownerId", async (req, res) => {
   try {
-    const houses = await GetHousesForOwner(req.params.ownerId);
-    if (!houses) return res.status(404).json({ message: "House not found" });
+    const houses = await getHousesForOwner(Number(req.params.ownerId));
+    if (!houses.length)
+      return res
+        .status(404)
+        .json({ message: "No houses found for this owner" });
     return res.status(200).json({ houses });
   } catch (error) {
-    return res.status(500).json({ message: "Couldn't get house", error });
+    return res.status(500).json({ message: "Couldn't get houses", error });
   }
 });
 
-HouseRoutes.get("/:tenantId", async (req, res) => {
+HouseRoutes.get("/tenant/:tenantId", async (req, res) => {
   try {
-    const house = await GetHouseForTenant(req.params.tenantId);
-    if (!house) return res.status(404).json({ message: "House not found" });
+    const house = await getHouseForTenant(Number(req.params.tenantId));
+    if (!house)
+      return res
+        .status(404)
+        .json({ message: "House not found for this tenant" });
     return res.status(200).json({ house });
   } catch (error) {
     return res.status(500).json({ message: "Couldn't get house", error });

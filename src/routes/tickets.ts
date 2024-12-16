@@ -1,12 +1,12 @@
 import express from "express";
 import {
-  CreateTicket,
-  DeleteTicket,
-  GetTicketById,
-  GetTickets,
-  GetTicketsByHouseId,
-  GetTicketsByTenantId,
-  UpdateTicket,
+  createTicket,
+  deleteTicket,
+  getTicketById,
+  getTickets,
+  getTicketsByHouseId,
+  getTicketsByTenantId,
+  updateTicket,
 } from "../repos/tickets";
 
 const TicketRoutes = express.Router();
@@ -15,8 +15,8 @@ TicketRoutes.use(express.json());
 TicketRoutes.route("/")
   .get(async (_req, res) => {
     try {
-      const tickets = GetTickets();
-      if (!tickets)
+      const tickets = await getTickets();
+      if (!tickets.length)
         return res.status(404).json({ message: "No tickets found" });
       return res.status(200).json({ tickets });
     } catch (error) {
@@ -25,29 +25,21 @@ TicketRoutes.route("/")
   })
   .post(async (req, res) => {
     const { tenantId, houseId, submitDate, title, description } = req.body;
-
-    if (!tenantId || !houseId || !submitDate || !title || !description)
-      return res.status(400).json({
-        message:
-          "Tenant id, house id, submit date, title, and description are required",
-      });
+    if (!tenantId || !houseId || !submitDate || !title || !description) {
+      return res
+        .status(400)
+        .json({ message: "All ticket fields are required" });
+    }
 
     try {
-      const existingTicket = await GetTicketsByHouseId(houseId);
-      if (existingTicket) {
-        return res.status(400).json({ error: "Ticket already exists" });
-      }
-
-      const ticket = await CreateTicket(
+      const ticketId = await createTicket(
         tenantId,
         houseId,
         submitDate,
         title,
         description
       );
-      if (!ticket.acknowledged)
-        return res.status(500).json({ message: "Error creating ticket" });
-      return res.status(201).json({ ticketId: ticket.insertedId.toString() });
+      return res.status(201).json({ ticketId });
     } catch (error) {
       return res.status(500).json({ message: "Ticket not created", error });
     }
@@ -56,7 +48,7 @@ TicketRoutes.route("/")
 TicketRoutes.route("/:ticketId")
   .get(async (req, res) => {
     try {
-      const ticket = await GetTicketById(req.params.ticketId);
+      const ticket = await getTicketById(Number(req.params.ticketId));
       if (!ticket) return res.status(404).json({ message: "Ticket not found" });
       return res.status(200).json({ ticket });
     } catch (error) {
@@ -65,11 +57,8 @@ TicketRoutes.route("/:ticketId")
   })
   .put(async (req, res) => {
     try {
-      const ticketUpdated = await UpdateTicket(
-        req.params.ticketId,
-        req.body.updateData
-      );
-      if (!ticketUpdated)
+      const success = await updateTicket(Number(req.params.ticketId), req.body);
+      if (!success)
         return res.status(400).json({ message: "Ticket not updated" });
       return res.status(200).json({ message: "Ticket updated successfully" });
     } catch (error) {
@@ -78,8 +67,8 @@ TicketRoutes.route("/:ticketId")
   })
   .delete(async (req, res) => {
     try {
-      const ticketDeleted = await DeleteTicket(req.params.ticketId);
-      if (!ticketDeleted)
+      const success = await deleteTicket(Number(req.params.ticketId));
+      if (!success)
         return res.status(400).json({ message: "Ticket not deleted" });
       return res.status(200).json({ message: "Ticket deleted successfully" });
     } catch (error) {
@@ -87,23 +76,25 @@ TicketRoutes.route("/:ticketId")
     }
   });
 
-TicketRoutes.get("/:houseId", async (req, res) => {
+TicketRoutes.get("/house/:houseId", async (req, res) => {
   try {
-    const ticket = await GetTicketsByHouseId(req.params.houseId);
-    if (!ticket) return res.status(404).json({ message: "Tickets not found" });
-    return res.status(200).json({ ticket });
+    const tickets = await getTicketsByHouseId(Number(req.params.houseId));
+    if (!tickets.length)
+      return res.status(404).json({ message: "No tickets found" });
+    return res.status(200).json({ tickets });
   } catch (error) {
-    return res.status(500).json({ message: "Couldn't get ticket", error });
+    return res.status(500).json({ message: "Couldn't get tickets", error });
   }
 });
 
-TicketRoutes.get("/:tenantId", async (req, res) => {
+TicketRoutes.get("/tenant/:tenantId", async (req, res) => {
   try {
-    const ticket = await GetTicketsByTenantId(req.params.tenantId);
-    if (!ticket) return res.status(404).json({ message: "Tickets not found" });
-    return res.status(200).json({ ticket });
+    const tickets = await getTicketsByTenantId(Number(req.params.tenantId));
+    if (!tickets.length)
+      return res.status(404).json({ message: "No tickets found" });
+    return res.status(200).json({ tickets });
   } catch (error) {
-    return res.status(500).json({ message: "Couldn't get ticket", error });
+    return res.status(500).json({ message: "Couldn't get tickets", error });
   }
 });
 
